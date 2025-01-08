@@ -173,7 +173,7 @@ More specifically, you should also implement following functions:
   [12,5,8,3]
   ```
 - `normalize` which normalizes given number to single digit as described in original algorithm
-  (if number is < 10 then subtracts 9 from it, otherwise keeps it as-is)
+  (if number is greater than or equal to 10 then subtracts 9 from it, otherwise keeps it as-is)
   ```haskell
   normalize :: Int -> Int
   ```
