@@ -28,7 +28,7 @@ task2Tests = testGroup "Task2"
         \(x, res) -> 
           counterexample ("luhnHex " ++ show x) $ luhnHex x === res
 
-  , testProperty "validateDec" $
+  , testProperty "validateHex" $
       withMaxSuccess 1000 $ forAllBlind (elements hexCases) $
         \(x, res) -> conjoin
           [ counterexample ("validateHex " ++ show x) $ validateHex x === False
