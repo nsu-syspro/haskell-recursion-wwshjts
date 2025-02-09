@@ -12,7 +12,7 @@ import Prelude hiding (reverse, map, filter, sum, foldl, foldr, length, head, ta
 -- You can reuse already implemented functions from Task1
 -- by listing them in this import clause
 -- NOTE: only listed functions are imported, everything else remains hidden
-import Task1 (reverse, map, sum)
+import Task1 (reverse, map, sum, doubleEveryOtherL, toDigits, dropLast, last)
 
 -----------------------------------
 --
@@ -25,7 +25,25 @@ import Task1 (reverse, map, sum)
 -- 1
 
 luhnModN :: Int -> (a -> Int) -> [a] -> Int
-luhnModN = error "TODO: define luhnModN"
+luhnModN base f list = 
+    luhnFormulaModN base (sum (map (normalizeModN base) (doubleEveryOtherL (map f list))))
+
+luhnFormulaModN :: Int -> Int -> Int
+luhnFormulaModN n s = (n - (s `mod` n)) `mod` n 
+
+-----------------------------------
+--
+-- Normalizes number as described in luhnModN algorithm 
+--
+-- Usage example:
+--
+-- >>> normalizeModN 16 30 
+-- 15 
+
+normalizeModN :: Int -> Int -> Int
+normalizeModN base n
+    | n >= base    = n - base + 1  
+    | otherwise = n 
 
 -----------------------------------
 --
@@ -37,7 +55,7 @@ luhnModN = error "TODO: define luhnModN"
 -- 1
 
 luhnDec :: [Int] -> Int
-luhnDec = error "TODO: define luhnDec"
+luhnDec = luhnModN 10 id
 
 -----------------------------------
 --
@@ -49,7 +67,7 @@ luhnDec = error "TODO: define luhnDec"
 -- 15
 
 luhnHex :: [Char] -> Int
-luhnHex = error "TODO: define luhnHex"
+luhnHex = luhnModN 16 digitToInt
 
 -----------------------------------
 --
@@ -65,7 +83,30 @@ luhnHex = error "TODO: define luhnHex"
 -- [10,11,12,13,14,15]
 
 digitToInt :: Char -> Int
-digitToInt = error "TODO: define digitToInt"
+digitToInt char
+    | char `elem` ['0'..'9'] = fromEnum char - fromEnum '0'
+    | char `elem` ['a'..'f'] = fromEnum char - fromEnum 'a' + 10
+    | char `elem` ['A'..'F'] = fromEnum char - fromEnum 'A' + 10
+    | otherwise              = error "Can't apply function not ot hexadecimal digit"
+
+-----------------------------------
+--
+-- Inversion of digitToInt 
+--
+-- Usage example:
+--
+-- >>> map digitToInt [0..9]
+-- ['0',1,2,3,4,5,6,7,8,9]
+-- >>> map digitToInt ['a'..'f']
+-- [10,11,12,13,14,15]
+-- >>> map digitToInt ['A'..'F']
+-- [10,11,12,13,14,15]
+
+intToDigit :: Int -> Char 
+intToDigit n 
+    | n `elem` [0..9]   = toEnum (n + fromEnum '0')
+    | n `elem` [10..15] = toEnum (n + fromEnum 'a' - digitToInt 'a')
+    | otherwise         = error "Can't apply function not ot hexadecimal digit"
 
 -----------------------------------
 --
@@ -82,7 +123,8 @@ digitToInt = error "TODO: define digitToInt"
 -- False
 
 validateDec :: Integer -> Bool
-validateDec = error "TODO: define validateDec"
+validateDec n =
+    luhnDec (toDigits (n `div` 10)) == fromIntegral (n `mod` 10) 
 
 -----------------------------------
 --
@@ -99,4 +141,5 @@ validateDec = error "TODO: define validateDec"
 -- False
 
 validateHex :: [Char] -> Bool
-validateHex = error "TODO: define validateHex"
+validateHex hex =
+    luhnHex (dropLast hex) == digitToInt (last hex)

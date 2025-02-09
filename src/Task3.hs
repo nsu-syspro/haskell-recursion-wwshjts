@@ -17,5 +17,7 @@ type Move = (Peg, Peg)
 -- [("a","c"),("a","b"),("c","b")]
 
 hanoi :: Int -> Peg -> Peg -> Peg -> [Move]
-hanoi = error "TODO: define hanoi"
+hanoi n from to tmp 
+    | n == 1    = [(from, to)] 
+    | otherwise = hanoi (n - 1) from tmp to ++ [(from, to)] ++ hanoi (n - 1) tmp to from
 
