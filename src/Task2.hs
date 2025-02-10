@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 -- The above pragma enables all warnings
 -- (except for unused imports from Task1)
-
 module Task2 where
 
 -- Explicit import of Prelude to hide functions
@@ -123,8 +122,7 @@ intToDigit n
 -- False
 
 validateDec :: Integer -> Bool
-validateDec n =
-    luhnDec (toDigits (n `div` 10)) == fromIntegral (n `mod` 10) 
+validateDec n = validatePoly 10 (toDigits n) id  -- `mod` and `div` are still effective than dropLast(
 
 -----------------------------------
 --
@@ -141,5 +139,17 @@ validateDec n =
 -- False
 
 validateHex :: [Char] -> Bool
-validateHex hex =
-    luhnHex (dropLast hex) == digitToInt (last hex)
+validateHex hexD = validatePoly 16 hexD digitToInt 
+
+
+-----------------------------------
+--
+-- Polymorphic validate function 
+-- first argument - is the base of radix
+-- second - list of number digits
+-- third  - bijection between symbols of redix notation and their ordinal numbers 
+--
+
+validatePoly :: Int -> [a] -> (a -> Int) -> Bool
+validatePoly base digits order =
+    luhnModN base order (dropLast digits) == order (last digits)

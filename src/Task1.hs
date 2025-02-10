@@ -161,7 +161,7 @@ dropLast (x : xs) = x : dropLast xs
 -- 1
 
 head :: [a] -> a
-head [] = error "Can't take head from an empty list"
+head []      = error "Can't take head from an empty list"
 head (x : _) = x
 
 -----------------------------------
