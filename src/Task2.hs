@@ -147,9 +147,9 @@ isLetter ch = isUpperCaseLetter ch || isLowerCaseLetter ch
 
 intToDigit :: Int -> Char 
 intToDigit n 
-    | n `elem` [0..9]   = toEnum (n + fromEnum '0')
-    | n `elem` [10..15] = toEnum (n + fromEnum 'a' - digitToInt 'a')
-    | otherwise         = error "Can't apply function not ot hexadecimal digit"
+    | (0 <= n) && (n < 10)  = toEnum (n + fromEnum '0')
+    | (10 <= n) && (n < 16) = toEnum (n + fromEnum 'a' - digitToInt 'a')
+    | otherwise             = error "Can't apply function not ot hexadecimal digit"
 
 -----------------------------------
 --
@@ -197,3 +197,24 @@ validateHex hexD = validatePoly 16 hexD digitToInt
 validatePoly :: Int -> [a] -> (a -> Int) -> Bool
 validatePoly base digits order =
     luhnModN base order (dropLast digits) == order (last digits)
+
+
+-----------------------------------
+--
+-- Bonus challenge: validate function without using partial functions
+-- here conversion from radix to integer is user responsibility
+--
+
+validateTotalImpl :: Int -> Integer -> Bool
+validateTotalImpl base num =
+    luhnModN base id (toRadix base (num `div` fromIntegral base)) == fromIntegral (num `mod` fromIntegral base)
+
+-----------------------------------
+--
+-- Converts given decimal integer to list of digits by given base
+--
+
+toRadix :: Int -> Integer -> [Int]
+toRadix _ 0 = []
+toRadix base num = toRadix base (num `div` fromIntegral base) ++ [fromIntegral (num `mod` fromIntegral base)]
+
