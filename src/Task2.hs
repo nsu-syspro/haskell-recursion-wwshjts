@@ -6,7 +6,7 @@ module Task2 where
 
 -- Explicit import of Prelude to hide functions
 -- that are not supposed to be used in this assignment
-import Prelude hiding (reverse, map, filter, sum, foldl, foldr, length, head, tail, init, last, show, read)
+import Prelude hiding (elem, reverse, map, filter, sum, foldl, foldr, length, head, tail, init, last, show, read)
 
 -- You can reuse already implemented functions from Task1
 -- by listing them in this import clause
@@ -70,6 +70,16 @@ luhnHex = luhnModN 16 digitToInt
 
 -----------------------------------
 --
+-- Returns true if list contains given element
+-- 
+
+elem :: Eq a => a -> [a] -> Bool
+elem _ []       = False
+elem e (x : xs) = (e == x) || elem e xs  -- Is it convinient way to use short-circuit eval
+                                         -- or it is be better to use if-then-else?
+
+-----------------------------------
+--
 -- Converts given hexadecimal digit to its ordinal number between 0 and 15
 --
 -- Usage example:
@@ -83,11 +93,45 @@ luhnHex = luhnModN 16 digitToInt
 
 digitToInt :: Char -> Int
 digitToInt char
-    | char `elem` ['0'..'9'] = fromEnum char - fromEnum '0'
-    | char `elem` ['a'..'f'] = fromEnum char - fromEnum 'a' + 10
-    | char `elem` ['A'..'F'] = fromEnum char - fromEnum 'A' + 10
+    | isDecimalDigit    char = fromEnum char - fromEnum '0'
+    | isLowerCaseLetter char = fromEnum char - fromEnum 'a' + 10
+    | isUpperCaseLetter char = fromEnum char - fromEnum 'A' + 10
     | otherwise              = error "Can't apply function not ot hexadecimal digit"
 
+
+-----------------------------------
+--
+-- Checks that given char is decimal digit
+--
+
+isDecimalDigit :: Char -> Bool
+isDecimalDigit ch = ('0' <= ch) && (ch <= '9')
+
+-----------------------------------
+--
+-- Checks that given char is english albhabet letter in lowerCase
+--
+
+isLowerCaseLetter :: Char -> Bool
+isLowerCaseLetter ch = ('a' <= ch) && (ch <= 'z')
+
+-----------------------------------
+--
+-- Checks that given char is english albhabet letter in upperCase 
+--
+
+isUpperCaseLetter :: Char -> Bool
+isUpperCaseLetter ch = ('A' <= ch) && (ch <= 'Z')
+
+
+-----------------------------------
+--
+-- Checks that given char is english alphabet letter
+--
+
+isLetter :: Char -> Bool
+isLetter ch = isUpperCaseLetter ch || isLowerCaseLetter ch
+    
 -----------------------------------
 --
 -- Inversion of digitToInt 
