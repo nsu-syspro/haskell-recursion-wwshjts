@@ -2,17 +2,16 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 -- The above pragma enables all warnings
 -- (except for unused imports from Task1)
-
 module Task2 where
 
 -- Explicit import of Prelude to hide functions
 -- that are not supposed to be used in this assignment
-import Prelude hiding (reverse, map, filter, sum, foldl, foldr, length, head, tail, init, last, show, read)
+import Prelude hiding (elem, reverse, map, filter, sum, foldl, foldr, length, head, tail, init, last, show, read)
 
 -- You can reuse already implemented functions from Task1
 -- by listing them in this import clause
 -- NOTE: only listed functions are imported, everything else remains hidden
-import Task1 (reverse, map, sum)
+import Task1 (reverse, map, sum, doubleEveryOtherL, toDigits, dropLast, last)
 
 -----------------------------------
 --
@@ -25,7 +24,25 @@ import Task1 (reverse, map, sum)
 -- 1
 
 luhnModN :: Int -> (a -> Int) -> [a] -> Int
-luhnModN = error "TODO: define luhnModN"
+luhnModN base f list = 
+    luhnFormulaModN base (sum (map (normalizeModN base) (doubleEveryOtherL (map f list))))
+
+luhnFormulaModN :: Int -> Int -> Int
+luhnFormulaModN n s = (n - (s `mod` n)) `mod` n 
+
+-----------------------------------
+--
+-- Normalizes number as described in luhnModN algorithm 
+--
+-- Usage example:
+--
+-- >>> normalizeModN 16 30 
+-- 15 
+
+normalizeModN :: Int -> Int -> Int
+normalizeModN base n
+    | n >= base    = n - base + 1  
+    | otherwise = n 
 
 -----------------------------------
 --
@@ -37,7 +54,7 @@ luhnModN = error "TODO: define luhnModN"
 -- 1
 
 luhnDec :: [Int] -> Int
-luhnDec = error "TODO: define luhnDec"
+luhnDec = luhnModN 10 id
 
 -----------------------------------
 --
@@ -49,7 +66,17 @@ luhnDec = error "TODO: define luhnDec"
 -- 15
 
 luhnHex :: [Char] -> Int
-luhnHex = error "TODO: define luhnHex"
+luhnHex = luhnModN 16 digitToInt
+
+-----------------------------------
+--
+-- Returns true if list contains given element
+-- 
+
+elem :: Eq a => a -> [a] -> Bool
+elem _ []       = False
+elem e (x : xs) = (e == x) || elem e xs  -- Is it convinient way to use short-circuit eval
+                                         -- or it is be better to use if-then-else?
 
 -----------------------------------
 --
@@ -65,7 +92,64 @@ luhnHex = error "TODO: define luhnHex"
 -- [10,11,12,13,14,15]
 
 digitToInt :: Char -> Int
-digitToInt = error "TODO: define digitToInt"
+digitToInt char
+    | isDecimalDigit    char = fromEnum char - fromEnum '0'
+    | isLowerCaseLetter char = fromEnum char - fromEnum 'a' + 10
+    | isUpperCaseLetter char = fromEnum char - fromEnum 'A' + 10
+    | otherwise              = error "Can't apply function not ot hexadecimal digit"
+
+
+-----------------------------------
+--
+-- Checks that given char is decimal digit
+--
+
+isDecimalDigit :: Char -> Bool
+isDecimalDigit ch = ('0' <= ch) && (ch <= '9')
+
+-----------------------------------
+--
+-- Checks that given char is english albhabet letter in lowerCase
+--
+
+isLowerCaseLetter :: Char -> Bool
+isLowerCaseLetter ch = ('a' <= ch) && (ch <= 'z')
+
+-----------------------------------
+--
+-- Checks that given char is english albhabet letter in upperCase 
+--
+
+isUpperCaseLetter :: Char -> Bool
+isUpperCaseLetter ch = ('A' <= ch) && (ch <= 'Z')
+
+
+-----------------------------------
+--
+-- Checks that given char is english alphabet letter
+--
+
+isLetter :: Char -> Bool
+isLetter ch = isUpperCaseLetter ch || isLowerCaseLetter ch
+    
+-----------------------------------
+--
+-- Inversion of digitToInt 
+--
+-- Usage example:
+--
+-- >>> map digitToInt [0..9]
+-- ['0',1,2,3,4,5,6,7,8,9]
+-- >>> map digitToInt ['a'..'f']
+-- [10,11,12,13,14,15]
+-- >>> map digitToInt ['A'..'F']
+-- [10,11,12,13,14,15]
+
+intToDigit :: Int -> Char 
+intToDigit n 
+    | (0 <= n) && (n < 10)  = toEnum (n + fromEnum '0')
+    | (10 <= n) && (n < 16) = toEnum (n + fromEnum 'a' - digitToInt 'a')
+    | otherwise             = error "Can't apply function not ot hexadecimal digit"
 
 -----------------------------------
 --
@@ -82,7 +166,7 @@ digitToInt = error "TODO: define digitToInt"
 -- False
 
 validateDec :: Integer -> Bool
-validateDec = error "TODO: define validateDec"
+validateDec n = validatePoly 10 (toDigits n) id  -- `mod` and `div` are still effective than dropLast(
 
 -----------------------------------
 --
@@ -99,4 +183,38 @@ validateDec = error "TODO: define validateDec"
 -- False
 
 validateHex :: [Char] -> Bool
-validateHex = error "TODO: define validateHex"
+validateHex hexD = validatePoly 16 hexD digitToInt 
+
+
+-----------------------------------
+--
+-- Polymorphic validate function 
+-- first argument - is the base of radix
+-- second - list of number digits
+-- third  - bijection between symbols of redix notation and their ordinal numbers 
+--
+
+validatePoly :: Int -> [a] -> (a -> Int) -> Bool
+validatePoly base digits order =
+    luhnModN base order (dropLast digits) == order (last digits)
+
+
+-----------------------------------
+--
+-- Bonus challenge: validate function without using partial functions
+-- here conversion from radix to integer is user responsibility
+--
+
+validateTotalImpl :: Int -> Integer -> Bool
+validateTotalImpl base num =
+    luhnModN base id (toRadix base (num `div` fromIntegral base)) == fromIntegral (num `mod` fromIntegral base)
+
+-----------------------------------
+--
+-- Converts given decimal integer to list of digits by given base
+--
+
+toRadix :: Int -> Integer -> [Int]
+toRadix _ 0 = []
+toRadix base num = toRadix base (num `div` fromIntegral base) ++ [fromIntegral (num `mod` fromIntegral base)]
+
